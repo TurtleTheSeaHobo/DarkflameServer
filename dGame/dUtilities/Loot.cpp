@@ -10,6 +10,7 @@
 #include "GeneralUtils.h"
 #include "InventoryComponent.h"
 #include "MissionComponent.h"
+#include "dLogger.h"
 
 std::unordered_map<LOT, int32_t> LootGenerator::RollLootMatrix(Entity* player, uint32_t matrixIndex) {
     auto* missionComponent = player->GetComponent<MissionComponent>();
@@ -19,13 +20,25 @@ std::unordered_map<LOT, int32_t> LootGenerator::RollLootMatrix(Entity* player, u
     if (missionComponent == nullptr) {
         return drops;
     }
+
+    Game::logger->Log("LootGenerator", "Rolling loot matrix %u for player %i...", matrixIndex, player->GetLOT());
+
     //const LootMatrix& matrix = m_LootMatrices[matrixIndex];
     LootMatrix matrix = LookupLootMatrix(matrixIndex);
 
+    Game::logger->Log("LootGenerator", "LootMatrix lookup okay!");
+
     for (const LootMatrixEntry& entry : matrix) {
         if (GeneralUtils::GenerateRandomNumber<float>(0, 1) < entry.percent) {
+            Game::logger->Log("LootGenerator", "Rolled to drop LootMatrixEntry with id %u", entry.id);
+
             LootTable lootTable = LookupLootTable(entry.LootTableIndex);
+
+            Game::logger->Log("LootGenerator", "LootTable lookup okay!");
+
             RarityTable rarityTable = LookupRarityTable(entry.RarityTableIndex);
+
+            Game::logger->Log("LootGenerator", "RarityTable lookup okay!");
 
             uint32_t dropCount = GeneralUtils::GenerateRandomNumber<uint32_t>(entry.minToDrop, entry.maxToDrop);
             for (uint32_t i = 0; i < dropCount; ++i) {
@@ -46,6 +59,8 @@ std::unordered_map<LOT, int32_t> LootGenerator::RollLootMatrix(Entity* player, u
 
                 for (const LootTableEntry& loot : lootTable) {
                     uint32_t rarity = LookupItemRarity(loot.itemid);
+
+                    Game::logger->Log("LootGenerator", "Item rarity lookup for item id %u okay!", loot.itemid);
 
                     if (rarity == maxRarity) {
                         possibleDrops.push_back(loot);
@@ -95,12 +110,23 @@ std::unordered_map<LOT, int32_t> LootGenerator::RollLootMatrix(Entity* player, u
 std::unordered_map<LOT, int32_t> LootGenerator::RollLootMatrix(uint32_t matrixIndex) {
     std::unordered_map<LOT, int32_t> drops;
 
+    Game::logger->Log("LootGenerator", "Rolling loot matrix %u...", matrixIndex);
+
     LootMatrix matrix = LookupLootMatrix(matrixIndex);
+
+    Game::logger->Log("LootGenerator", "LootMatrix lookup okay!");
 
     for (const LootMatrixEntry& entry : matrix) {
         if (GeneralUtils::GenerateRandomNumber<float>(0, 1) < entry.percent) {
+            Game::logger->Log("LootGenerator", "Rolled to drop LootMatrixEntry with id %u", entry.id);
+
             LootTable lootTable = LookupLootTable(entry.LootTableIndex);
+
+            Game::logger->Log("LootGenerator", "LootTable lookup okay!");
+
             RarityTable rarityTable = LookupRarityTable(entry.RarityTableIndex);
+
+            Game::logger->Log("LootGenerator", "RarityTable lookup okay!");
 
             uint32_t dropCount = GeneralUtils::GenerateRandomNumber<uint32_t>(entry.minToDrop, entry.maxToDrop);
             for (uint32_t i = 0; i < dropCount; ++i) {
@@ -121,6 +147,8 @@ std::unordered_map<LOT, int32_t> LootGenerator::RollLootMatrix(uint32_t matrixIn
 
                 for (const LootTableEntry& loot : lootTable) {
                     uint32_t rarity = LookupItemRarity(loot.itemid);
+
+                    Game::logger->Log("LootGenerator", "Item rarity lookup for item id %u okay!", loot.itemid);
 
                     if (rarity == maxRarity) {
                         possibleDrops.push_back(loot);
