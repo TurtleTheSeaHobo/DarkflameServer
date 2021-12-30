@@ -4,9 +4,6 @@
 
 #include "CDComponentsRegistryTable.h"
 #include "CDItemComponentTable.h"
-#include "CDLootMatrixTable.h"
-#include "CDLootTableTable.h"
-#include "CDRarityTableTable.h"
 #include "Character.h"
 #include "Entity.h"
 #include "GameMessages.h"
@@ -14,6 +11,7 @@
 #include "InventoryComponent.h"
 #include "MissionComponent.h"
 
+/*
 LootGenerator::LootGenerator() {
     CDLootTableTable* lootTableTable = CDClientManager::Instance()->GetTable<CDLootTableTable>("LootTable");
     CDComponentsRegistryTable* componentsRegistryTable = CDClientManager::Instance()->GetTable<CDComponentsRegistryTable>("ComponentsRegistry");
@@ -131,6 +129,7 @@ LootGenerator::LootGenerator() {
         m_LootTables.insert({index, lootTable});
     }
 }
+*/
 
 std::unordered_map<LOT, int32_t> LootGenerator::RollLootMatrix(Entity* player, uint32_t matrixIndex) {
     auto* missionComponent = player->GetComponent<MissionComponent>();
@@ -141,21 +140,22 @@ std::unordered_map<LOT, int32_t> LootGenerator::RollLootMatrix(Entity* player, u
         return drops;
     }
 
-    const LootMatrix& matrix = m_LootMatrices[matrixIndex];
+    //const LootMatrix& matrix = m_LootMatrices[matrixIndex];
+    const LootMatrix& matrix = LookupLootMatrix(matrixIndex);
 
     for (const LootMatrixEntry& entry : matrix) {
         if (GeneralUtils::GenerateRandomNumber<float>(0, 1) < entry.percent) {
-            const LootTable& lootTable = m_LootTables[entry.lootTableIndex];
-            const RarityTable& rarityTable = m_RarityTables[entry.rarityTableIndex];
+            const LootTable& lootTable = LookupLootTable(entry.LootTableIndex);
+            const RarityTable& rarityTable = LookupRarityTable(entry.RarityTableIndex);
 
-            uint32_t dropCount = GeneralUtils::GenerateRandomNumber<uint32_t>(entry.minDrop, entry.maxDrop);
+            uint32_t dropCount = GeneralUtils::GenerateRandomNumber<uint32_t>(entry.minToDrop, entry.maxToDrop);
             for (uint32_t i = 0; i < dropCount; ++i) {
                 uint32_t maxRarity = 1;
 
                 float rarityRoll = GeneralUtils::GenerateRandomNumber<float>(0, 1);
 
-                for (const RarityTableEntry& rarity : rarityTable) {
-                    if (rarity.randMax >= rarityRoll) {
+                for (const CDRarityTable& rarity : rarityTable) {
+                    if (rarity.randmax >= rarityRoll) {
                         maxRarity = rarity.rarity;
                     } else {
                         break;
@@ -163,10 +163,10 @@ std::unordered_map<LOT, int32_t> LootGenerator::RollLootMatrix(Entity* player, u
                 }
 
                 bool rarityFound = false;
-                std::vector<LootTableEntry> possibleDrops;
+                std::vector<CDLootTable> possibleDrops;
 
-                for (const LootTableEntry& loot : lootTable) {
-                    uint32_t rarity = m_ItemRarities[loot.itemID];
+                for (const CDLootTable& loot : lootTable) {
+                    uint32_t rarity = LookupItemRarity(loot.itemid);
 
                     if (rarity == maxRarity) {
                         possibleDrops.push_back(loot);
@@ -181,29 +181,29 @@ std::unordered_map<LOT, int32_t> LootGenerator::RollLootMatrix(Entity* player, u
                     LootTableEntry drop = possibleDrops[GeneralUtils::GenerateRandomNumber<uint32_t>(0, possibleDrops.size() - 1)];
 
                     // filter out uneeded mission items
-                    if (drop.isMissionDrop && !missionComponent->RequiresItem(drop.itemID))
+                    if (drop.MissionDrop && !missionComponent->RequiresItem(drop.itemid))
                         continue;
 
                     // convert faction token proxy
-                    if (drop.itemID == 13763) {
+                    if (drop.itemid == 13763) {
                         if (missionComponent->GetMissionState(545) == MissionState::MISSION_STATE_COMPLETE)
-                            drop.itemID = 8318; // "Assembly Token"
+                            drop.itemid = 8318; // "Assembly Token"
                         else if (missionComponent->GetMissionState(556) == MissionState::MISSION_STATE_COMPLETE)
-                            drop.itemID = 8321; // "Venture League Token"
+                            drop.itemid = 8321; // "Venture League Token"
                         else if (missionComponent->GetMissionState(567) == MissionState::MISSION_STATE_COMPLETE)
-                            drop.itemID = 8319; // "Sentinels Token"
+                            drop.itemid = 8319; // "Sentinels Token"
                         else if (missionComponent->GetMissionState(578) == MissionState::MISSION_STATE_COMPLETE)
-                            drop.itemID = 8320; // "Paradox Token"
+                            drop.itemid = 8320; // "Paradox Token"
                     }
 
-                    if (drop.itemID == 13763) {
+                    if (drop.itemid == 13763) {
                         continue;
                     } // check if we aren't in faction
 
-                    if (drops.find(drop.itemID) == drops.end()) {
-                        drops.insert({drop.itemID, 1});
+                    if (drops.find(drop.itemid) == drops.end()) {
+                        drops.insert({drop.itemid, 1});
                     } else {
-                        ++drops[drop.itemID];
+                        ++drops[drop.itemid];
                     }
                 }
             }
@@ -216,21 +216,21 @@ std::unordered_map<LOT, int32_t> LootGenerator::RollLootMatrix(Entity* player, u
 std::unordered_map<LOT, int32_t> LootGenerator::RollLootMatrix(uint32_t matrixIndex) {
     std::unordered_map<LOT, int32_t> drops;
 
-    const LootMatrix& matrix = m_LootMatrices[matrixIndex];
+    const LootMatrix& matrix = LookupLootMatrix(matrixIndex);
 
     for (const LootMatrixEntry& entry : matrix) {
         if (GeneralUtils::GenerateRandomNumber<float>(0, 1) < entry.percent) {
-            const LootTable& lootTable = m_LootTables[entry.lootTableIndex];
-            const RarityTable& rarityTable = m_RarityTables[entry.rarityTableIndex];
+            const LootTable& lootTable = LookupLootTable(entry.LootTableIndex);
+            const RarityTable& rarityTable = LookupRarityTable(entry.RarityTableIndex);
 
-            uint32_t dropCount = GeneralUtils::GenerateRandomNumber<uint32_t>(entry.minDrop, entry.maxDrop);
+            uint32_t dropCount = GeneralUtils::GenerateRandomNumber<uint32_t>(entry.minToDrop, entry.maxToDrop);
             for (uint32_t i = 0; i < dropCount; ++i) {
                 uint32_t maxRarity = 1;
 
                 float rarityRoll = GeneralUtils::GenerateRandomNumber<float>(0, 1);
 
                 for (const RarityTableEntry& rarity : rarityTable) {
-                    if (rarity.randMax >= rarityRoll) {
+                    if (rarity.randmax >= rarityRoll) {
                         maxRarity = rarity.rarity;
                     } else {
                         break;
@@ -241,7 +241,7 @@ std::unordered_map<LOT, int32_t> LootGenerator::RollLootMatrix(uint32_t matrixIn
                 std::vector<LootTableEntry> possibleDrops;
 
                 for (const LootTableEntry& loot : lootTable) {
-                    uint32_t rarity = m_ItemRarities[loot.itemID];
+                    uint32_t rarity = LookupItemRarity(loot.itemid);
 
                     if (rarity == maxRarity) {
                         possibleDrops.push_back(loot);
@@ -253,12 +253,12 @@ std::unordered_map<LOT, int32_t> LootGenerator::RollLootMatrix(uint32_t matrixIn
                 }
 
                 if (possibleDrops.size() > 0) {
-                    const LootTableEntry& drop = possibleDrops[GeneralUtils::GenerateRandomNumber<uint32_t>(0, possibleDrops.size() - 1)];
+                    LootTableEntry drop = possibleDrops[GeneralUtils::GenerateRandomNumber<uint32_t>(0, possibleDrops.size() - 1)];
 
-                    if (drops.find(drop.itemID) == drops.end()) {
-                        drops.insert({drop.itemID, 1});
+                    if (drops.find(drop.itemid) == drops.end()) {
+                        drops.insert({drop.itemid, 1});
                     } else {
-                        ++drops[drop.itemID];
+                        ++drops[drop.itemid];
                     }
                 }
             }
@@ -386,4 +386,35 @@ void LootGenerator::DropActivityLoot(Entity* player, Entity* source, uint32_t ac
     }
 
     DropLoot(player, source, selectedReward->LootMatrixIndex, minCoins, maxCoins);
+}
+
+uint32_t LootGenerator::LookupItemRarity(uint32_t itemID) {
+    auto* componentsRegistryTable = CDClientManager::Instance()->GetTable<CDComponentsRegistryTable>("ComponentsRegistry");
+    auto* itemComponentTable = CDClientManager::Instance()->GetTable<CDItemComponentTable>("ItemComponent");
+
+    uint32_t itemComponentID = componentsRegistryTable->GetByIDAndType(itemID, COMPONENT_TYPE_ITEM);
+    const CDItemComponent& item = itemComponentTable->GetItemComponentByID(itemComponentID);
+
+    return item.rarity;
+}
+
+const RarityTable& LootGenerator::LookupRarityTable(uint32_t index) {
+    auto* rarityTableTable = CDClientManager::Instance()->GetTable<CDRarityTableTable>("RarityTable");
+    std::vector<CDRarityTable> rarityTable = rarityTableTable->Query([index](const CDRarityTable& entry) { return entry.RarityTableIndex == index; });
+
+    return rarityTable;
+}
+
+const LootMatrix& LootGenerator::LookupLootMatrix(uint32_t index) {
+    auto* lootMatrixTable = CDClientManager::Instance()->GetTable<CDLootMatrixTable>("LootMatrixTable");
+    std::vector<CDLootMatrix> lootMatrix = lootMatrixTable->Query([index](const CDLootMatrix& entry) { return entry.LootMatrixIndex == index; });
+
+    return lootMatrix;
+}
+
+const LootTable& LootGenerator::LookupLootTable(uint32_t index) {
+    auto* lootTableTable = CDClientManager::Instance()->GetTable<CDLootTableTable>("LootTable");
+    std::vector<CDLootTable> lootTable = lootTableTable->Query([index](const CDLootTable& entry) { return entry.LootTableIndex == index; });
+
+    return lootTable;
 }

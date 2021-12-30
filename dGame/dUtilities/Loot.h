@@ -5,8 +5,12 @@
 #include "Singleton.h"
 #include <vector>
 
-class Entity;
+#include "CDLootMatrixTable.h"
+#include "CDLootTableTable.h"
+#include "CDRarityTableTable.h"
 
+class Entity;
+/*
 struct RarityTableEntry {
     uint32_t rarity;
     float randMax;
@@ -30,6 +34,15 @@ struct LootTableEntry {
 };
 
 typedef std::vector<LootTableEntry> LootTable;
+*/
+
+
+using RarityTableEntry = CDRarityTable;
+using LootMatrixEntry = CDLootMatrix;
+using LootTableEntry = CDLootTable;
+using RarityTable = std::vector<RarityTableEntry>;
+using LootMatrix = std::vector<LootMatrixEntry>;
+using LootTable = std::vector<LootTableEntry>;
 
 // used for glue code with Entity and Player classes
 namespace Loot {
@@ -43,7 +56,7 @@ namespace Loot {
 
 class LootGenerator : public Singleton<LootGenerator> {
   public:
-    LootGenerator();
+    LootGenerator() = default;
 
     std::unordered_map<LOT, int32_t> RollLootMatrix(Entity* player, uint32_t matrixIndex);
     std::unordered_map<LOT, int32_t> RollLootMatrix(uint32_t matrixIndex);
@@ -55,8 +68,15 @@ class LootGenerator : public Singleton<LootGenerator> {
     void DropActivityLoot(Entity* player, Entity* source, uint32_t activityID, int32_t rating = 0);
 
   private:
+    uint32_t LookupItemRarity(uint32_t itemID);
+    const RarityTable& LookupRarityTable(uint32_t index);
+    const LootMatrix& LookupLootMatrix(uint32_t index);
+    const LootTable& LookupLootTable(uint32_t index);
+
+    /*
     std::unordered_map<uint32_t, uint8_t> m_ItemRarities;
     std::unordered_map<uint32_t, RarityTable> m_RarityTables;
     std::unordered_map<uint32_t, LootMatrix> m_LootMatrices;
     std::unordered_map<uint32_t, LootTable> m_LootTables;
+    */
 };
