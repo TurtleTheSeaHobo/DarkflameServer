@@ -10,32 +10,6 @@
 #include "CDRarityTableTable.h"
 
 class Entity;
-/*
-struct RarityTableEntry {
-    uint32_t rarity;
-    float randMax;
-};
-
-typedef std::vector<RarityTableEntry> RarityTable;
-
-struct LootMatrixEntry {
-    uint32_t lootTableIndex;
-    uint32_t rarityTableIndex;
-    float percent;
-    uint32_t minDrop;
-    uint32_t maxDrop;
-};
-
-typedef std::vector<LootMatrixEntry> LootMatrix;
-
-struct LootTableEntry {
-    LOT itemID;
-    bool isMissionDrop;
-};
-
-typedef std::vector<LootTableEntry> LootTable;
-*/
-
 
 using RarityTableEntry = CDRarityTable;
 using LootMatrixEntry = CDLootMatrix;
@@ -72,11 +46,4 @@ class LootGenerator : public Singleton<LootGenerator> {
     RarityTable LookupRarityTable(uint32_t index);
     LootMatrix LookupLootMatrix(uint32_t index);
     LootTable LookupLootTable(uint32_t index);
-
-    /*
-    std::unordered_map<uint32_t, uint8_t> m_ItemRarities;
-    std::unordered_map<uint32_t, RarityTable> m_RarityTables;
-    std::unordered_map<uint32_t, LootMatrix> m_LootMatrices;
-    std::unordered_map<uint32_t, LootTable> m_LootTables;
-    */
 };

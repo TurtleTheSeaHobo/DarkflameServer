@@ -11,126 +11,6 @@
 #include "InventoryComponent.h"
 #include "MissionComponent.h"
 
-/*
-LootGenerator::LootGenerator() {
-    CDLootTableTable* lootTableTable = CDClientManager::Instance()->GetTable<CDLootTableTable>("LootTable");
-    CDComponentsRegistryTable* componentsRegistryTable = CDClientManager::Instance()->GetTable<CDComponentsRegistryTable>("ComponentsRegistry");
-    CDItemComponentTable* itemComponentTable = CDClientManager::Instance()->GetTable<CDItemComponentTable>("ItemComponent");
-    CDLootMatrixTable* lootMatrixTable = CDClientManager::Instance()->GetTable<CDLootMatrixTable>("LootMatrix");
-    CDRarityTableTable* rarityTableTable = CDClientManager::Instance()->GetTable<CDRarityTableTable>("RarityTable");
-
-    // ==============================
-    // Cache Item Rarities
-    // ==============================
-
-    std::vector<uint32_t> uniqueItems;
-
-    for (const CDLootTable& loot : lootTableTable->GetEntries()) {
-        uniqueItems.push_back(loot.itemid);
-    }
-
-    // filter out duplicates
-    std::sort(uniqueItems.begin(), uniqueItems.end());
-    uniqueItems.erase(std::unique(uniqueItems.begin(), uniqueItems.end()), uniqueItems.end());
-
-    for (const uint32_t itemID : uniqueItems) {
-        uint32_t itemComponentID = componentsRegistryTable->GetByIDAndType(itemID, COMPONENT_TYPE_ITEM);
-        const CDItemComponent& item = itemComponentTable->GetItemComponentByID(itemComponentID);
-
-        m_ItemRarities.insert({itemID, item.rarity});
-    }
-
-    // ==============================
-    // Cache Rarity Tables
-    // ==============================
-
-    std::vector<uint32_t> uniqueRarityIndices;
-
-    for (const CDRarityTable& rarity : rarityTableTable->GetEntries()) {
-        uniqueRarityIndices.push_back(rarity.RarityTableIndex);
-    }
-
-    // filter out duplicates
-    std::sort(uniqueRarityIndices.begin(), uniqueRarityIndices.end());
-    uniqueRarityIndices.erase(std::unique(uniqueRarityIndices.begin(), uniqueRarityIndices.end()), uniqueRarityIndices.end());
-
-    for (const uint32_t index : uniqueRarityIndices) {
-        std::vector<CDRarityTable> table = rarityTableTable->Query([index](const CDRarityTable& entry) { return entry.RarityTableIndex == index; });
-
-        RarityTable rarityTable;
-
-        for (const CDRarityTable& entry : table) {
-            RarityTableEntry rarity{entry.rarity, entry.randmax};
-            rarityTable.push_back(rarity);
-        }
-
-        // sort in descending order based on randMax
-        std::sort(rarityTable.begin(), rarityTable.end(), [](const RarityTableEntry& x, const RarityTableEntry& y) { return x.randMax > y.randMax; });
-
-        m_RarityTables.insert({index, rarityTable});
-    }
-
-    // ==============================
-    // Cache Loot Matrices
-    // ==============================
-
-    std::vector<uint32_t> uniqueMatrixIndices;
-
-    for (const CDLootMatrix& matrix : lootMatrixTable->GetEntries()) {
-        uniqueMatrixIndices.push_back(matrix.LootMatrixIndex);
-    }
-
-    // filter out duplicates
-    std::sort(uniqueMatrixIndices.begin(), uniqueMatrixIndices.end());
-    uniqueMatrixIndices.erase(std::unique(uniqueMatrixIndices.begin(), uniqueMatrixIndices.end()), uniqueMatrixIndices.end());
-
-    for (const uint32_t index : uniqueMatrixIndices) {
-        std::vector<CDLootMatrix> matrix = lootMatrixTable->Query([index](const CDLootMatrix& entry) { return entry.LootMatrixIndex == index; });
-
-        LootMatrix lootMatrix;
-
-        for (const CDLootMatrix& entry : matrix) {
-            LootMatrixEntry matrixEntry{entry.LootTableIndex, entry.RarityTableIndex, entry.percent, entry.minToDrop, entry.maxToDrop};
-            lootMatrix.push_back(matrixEntry);
-        }
-
-        m_LootMatrices.insert({index, lootMatrix});
-    }
-
-    // ==============================
-    // Cache Loot Tables
-    // ==============================
-
-    std::vector<uint32_t> uniqueTableIndices;
-
-    for (const CDLootTable& entry : lootTableTable->GetEntries()) {
-        uniqueTableIndices.push_back(entry.LootTableIndex);
-    }
-
-    // filter out duplicates
-    std::sort(uniqueTableIndices.begin(), uniqueTableIndices.end());
-    uniqueTableIndices.erase(std::unique(uniqueTableIndices.begin(), uniqueTableIndices.end()), uniqueTableIndices.end());
-
-    for (const uint32_t index : uniqueTableIndices) {
-        std::vector<CDLootTable> entries = lootTableTable->Query([index](const CDLootTable& entry) { return entry.LootTableIndex == index; });
-
-        LootTable lootTable;
-
-        for (const CDLootTable& entry : entries) {
-            LootTableEntry tableEntry{(LOT)entry.itemid, entry.MissionDrop};
-            lootTable.push_back(tableEntry);
-        }
-
-        // sort by item rarity descending
-        std::sort(lootTable.begin(), lootTable.end(), [&](const LootTableEntry& x, const LootTableEntry& y) {
-            return m_ItemRarities[x.itemID] > m_ItemRarities[y.itemID];
-        });
-
-        m_LootTables.insert({index, lootTable});
-    }
-}
-*/
-
 std::unordered_map<LOT, int32_t> LootGenerator::RollLootMatrix(Entity* player, uint32_t matrixIndex) {
     auto* missionComponent = player->GetComponent<MissionComponent>();
 
@@ -139,9 +19,8 @@ std::unordered_map<LOT, int32_t> LootGenerator::RollLootMatrix(Entity* player, u
     if (missionComponent == nullptr) {
         return drops;
     }
-
     //const LootMatrix& matrix = m_LootMatrices[matrixIndex];
-    const LootMatrix& matrix = LookupLootMatrix(matrixIndex);
+    LootMatrix matrix = LookupLootMatrix(matrixIndex);
 
     for (const LootMatrixEntry& entry : matrix) {
         if (GeneralUtils::GenerateRandomNumber<float>(0, 1) < entry.percent) {
