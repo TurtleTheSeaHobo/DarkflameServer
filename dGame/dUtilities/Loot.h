@@ -69,9 +69,9 @@ class LootGenerator : public Singleton<LootGenerator> {
 
   private:
     uint32_t LookupItemRarity(uint32_t itemID);
-    const RarityTable& LookupRarityTable(uint32_t index);
-    const LootMatrix& LookupLootMatrix(uint32_t index);
-    const LootTable& LookupLootTable(uint32_t index);
+    RarityTable LookupRarityTable(uint32_t index);
+    LootMatrix LookupLootMatrix(uint32_t index);
+    LootTable LookupLootTable(uint32_t index);
 
     /*
     std::unordered_map<uint32_t, uint8_t> m_ItemRarities;

@@ -145,8 +145,8 @@ std::unordered_map<LOT, int32_t> LootGenerator::RollLootMatrix(Entity* player, u
 
     for (const LootMatrixEntry& entry : matrix) {
         if (GeneralUtils::GenerateRandomNumber<float>(0, 1) < entry.percent) {
-            const LootTable& lootTable = LookupLootTable(entry.LootTableIndex);
-            const RarityTable& rarityTable = LookupRarityTable(entry.RarityTableIndex);
+            LootTable lootTable = LookupLootTable(entry.LootTableIndex);
+            RarityTable rarityTable = LookupRarityTable(entry.RarityTableIndex);
 
             uint32_t dropCount = GeneralUtils::GenerateRandomNumber<uint32_t>(entry.minToDrop, entry.maxToDrop);
             for (uint32_t i = 0; i < dropCount; ++i) {
@@ -154,7 +154,7 @@ std::unordered_map<LOT, int32_t> LootGenerator::RollLootMatrix(Entity* player, u
 
                 float rarityRoll = GeneralUtils::GenerateRandomNumber<float>(0, 1);
 
-                for (const CDRarityTable& rarity : rarityTable) {
+                for (const RarityTableEntry& rarity : rarityTable) {
                     if (rarity.randmax >= rarityRoll) {
                         maxRarity = rarity.rarity;
                     } else {
@@ -163,9 +163,9 @@ std::unordered_map<LOT, int32_t> LootGenerator::RollLootMatrix(Entity* player, u
                 }
 
                 bool rarityFound = false;
-                std::vector<CDLootTable> possibleDrops;
+                std::vector<LootTableEntry> possibleDrops;
 
-                for (const CDLootTable& loot : lootTable) {
+                for (const LootTableEntry& loot : lootTable) {
                     uint32_t rarity = LookupItemRarity(loot.itemid);
 
                     if (rarity == maxRarity) {
@@ -216,12 +216,12 @@ std::unordered_map<LOT, int32_t> LootGenerator::RollLootMatrix(Entity* player, u
 std::unordered_map<LOT, int32_t> LootGenerator::RollLootMatrix(uint32_t matrixIndex) {
     std::unordered_map<LOT, int32_t> drops;
 
-    const LootMatrix& matrix = LookupLootMatrix(matrixIndex);
+    LootMatrix matrix = LookupLootMatrix(matrixIndex);
 
     for (const LootMatrixEntry& entry : matrix) {
         if (GeneralUtils::GenerateRandomNumber<float>(0, 1) < entry.percent) {
-            const LootTable& lootTable = LookupLootTable(entry.LootTableIndex);
-            const RarityTable& rarityTable = LookupRarityTable(entry.RarityTableIndex);
+            LootTable lootTable = LookupLootTable(entry.LootTableIndex);
+            RarityTable rarityTable = LookupRarityTable(entry.RarityTableIndex);
 
             uint32_t dropCount = GeneralUtils::GenerateRandomNumber<uint32_t>(entry.minToDrop, entry.maxToDrop);
             for (uint32_t i = 0; i < dropCount; ++i) {
@@ -398,21 +398,21 @@ uint32_t LootGenerator::LookupItemRarity(uint32_t itemID) {
     return item.rarity;
 }
 
-const RarityTable& LootGenerator::LookupRarityTable(uint32_t index) {
+RarityTable LootGenerator::LookupRarityTable(uint32_t index) {
     auto* rarityTableTable = CDClientManager::Instance()->GetTable<CDRarityTableTable>("RarityTable");
     std::vector<CDRarityTable> rarityTable = rarityTableTable->Query([index](const CDRarityTable& entry) { return entry.RarityTableIndex == index; });
 
     return rarityTable;
 }
 
-const LootMatrix& LootGenerator::LookupLootMatrix(uint32_t index) {
+LootMatrix LootGenerator::LookupLootMatrix(uint32_t index) {
     auto* lootMatrixTable = CDClientManager::Instance()->GetTable<CDLootMatrixTable>("LootMatrixTable");
     std::vector<CDLootMatrix> lootMatrix = lootMatrixTable->Query([index](const CDLootMatrix& entry) { return entry.LootMatrixIndex == index; });
 
     return lootMatrix;
 }
 
-const LootTable& LootGenerator::LookupLootTable(uint32_t index) {
+LootTable LootGenerator::LookupLootTable(uint32_t index) {
     auto* lootTableTable = CDClientManager::Instance()->GetTable<CDLootTableTable>("LootTable");
     std::vector<CDLootTable> lootTable = lootTableTable->Query([index](const CDLootTable& entry) { return entry.LootTableIndex == index; });
 
