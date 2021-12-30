@@ -313,7 +313,7 @@ RarityTable LootGenerator::LookupRarityTable(uint32_t index) {
 }
 
 LootMatrix LootGenerator::LookupLootMatrix(uint32_t index) {
-    auto* lootMatrixTable = CDClientManager::Instance()->GetTable<CDLootMatrixTable>("LootMatrixTable");
+    auto* lootMatrixTable = CDClientManager::Instance()->GetTable<CDLootMatrixTable>("LootMatrix");
     std::vector<CDLootMatrix> lootMatrix = lootMatrixTable->Query([index](const CDLootMatrix& entry) { return entry.LootMatrixIndex == index; });
 
     return lootMatrix;
